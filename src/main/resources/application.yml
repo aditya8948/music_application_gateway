@@ -1,0 +1,47 @@
+server:
+  port: 9090
+
+spring:
+  application:
+    name: music-player-gateway
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${ZITADEL_ISSUER:https://musekit-oua2yk.us1.zitadel.cloud}
+          jwk-set-uri: ${ZITADEL_JWKS_URI:https://musekit-oua2yk.us1.zitadel.cloud/oauth/v2/keys}
+  cloud:
+    gateway:
+      routes:
+        # Route 1: Swagger UI and OpenAPI documentation
+        - id: swagger-ui-route
+          uri: ${BACKEND_URI:http://localhost:8080}
+          predicates:
+            - Path=/swagger-ui/**, /swagger-ui.html, /v3/api-docs/**
+
+        # Route 2: Static audio file uploads
+        - id: uploads-route
+          uri: ${BACKEND_URI:http://localhost:8080}
+          predicates:
+            - Path=/uploads/**
+
+        # Route 3: Core API (Songs, Playlists, Users)
+        - id: backend-api-route
+          uri: ${BACKEND_URI:http://localhost:8080}
+          predicates:
+            - Path=/api/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    org.springframework.security: INFO
+    com.musekit.gateway: DEBUG
